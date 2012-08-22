@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Ecom.Hal.JSON;
 using Newtonsoft.Json;
@@ -29,6 +31,15 @@ namespace Ecom.Hal
 				          	});
 
 
+		}
+
+		public void SetCredentials(string username, string password)
+		{
+			Client
+				.DefaultRequestHeaders
+				.Authorization = new AuthenticationHeaderValue(
+					"Basic", 
+					Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", username, password))));
 		}
 
 		protected HttpClient Client { get; set; }
