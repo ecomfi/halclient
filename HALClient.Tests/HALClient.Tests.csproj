@@ -51,6 +51,7 @@
     <Compile Include="JSON\ResourceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\Product.cs" />
+    <Compile Include="Support\Products.cs" />
     <Compile Include="Support\Supplier.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -36,5 +36,19 @@ namespace HALClient.Tests.JSON
 			Assert.IsInstanceOf<Supplier>(model.Supplier);
 			Assert.AreEqual("Test supplier", model.Supplier.Name);
 		}
+
+		[Test]
+		public void TestParseParsesNestedEmbedded()
+		{
+			var str =
+				@"{""_embedded"":{""products"":[{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}},""_embedded"":{""supplier"":{""name"":""Test supplier""}}}]}}";
+			var client = new HalClient(new Uri("http://test"));
+			var model = client.Parse<Products>(str);
+			Assert.AreEqual(1, model.Items.Count);
+			var product = model.Items.First();
+			Assert.AreEqual("Foo bar", product.Name);
+			Assert.NotNull(product.Supplier);
+			Assert.AreEqual("Test supplier", product.Supplier.Name);
+		}
 	}
 }
