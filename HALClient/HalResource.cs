@@ -14,5 +14,9 @@ namespace Ecom.Hal
 			get { return _links; }
 			set { _links = value; }
 		}
+
+		[JsonIgnore]
+		public bool IsNew { get; set; }
+
 	}
 }

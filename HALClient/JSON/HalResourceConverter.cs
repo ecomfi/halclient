@@ -36,6 +36,8 @@ namespace Ecom.Hal.JSON
 						}
 					}
 				}
+				if (objectType == typeof(HalResource))
+					((HalResource) ret).IsNew = false;
 				return ret;
 			}
 			if (obj.Type == JTokenType.Array) {
