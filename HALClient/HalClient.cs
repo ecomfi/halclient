@@ -43,5 +43,10 @@ namespace Ecom.Hal
 		}
 
 		protected HttpClient Client { get; set; }
+
+		public Task<T> Get<T>(HalLink link)
+		{
+			return Get<T>(link.Href);
+		}
 	}
 }

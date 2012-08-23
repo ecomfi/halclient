@@ -11,7 +11,20 @@ namespace Ecom.Hal.JSON
 	{
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			throw new NotImplementedException();
+			var collection = value as HalLinkCollection;
+			if (collection != null) {
+				writer.WriteStartObject();
+				foreach (var link in collection) {
+					writer.WritePropertyName(link.Rel);
+					writer.WriteStartObject();
+					writer.WritePropertyName("href");
+					writer.WriteValue(link.Href);
+					writer.WriteEndObject();
+				}
+				writer.WriteEndObject();
+			}
+			else
+				writer.WriteNull();
 		}
 
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
