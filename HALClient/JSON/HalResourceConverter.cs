@@ -36,7 +36,7 @@ namespace Ecom.Hal.JSON
 						}
 					}
 				}
-				if (objectType == typeof(HalResource))
+				if (objectType.IsSubclassOf(typeof(HalResource)))
 					((HalResource) ret).IsNew = false;
 				return ret;
 			}
