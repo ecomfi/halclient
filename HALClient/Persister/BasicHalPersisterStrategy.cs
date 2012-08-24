@@ -12,7 +12,7 @@ namespace Ecom.Hal.Persister
 {
 	public class BasicHalPersisterStrategy : IHalPersisterStrategy
 	{
-		public T Persist<T>(T resource, HalLink link = null) where T : HalResource
+		public IHalPersistResult<T> Persist<T>(T resource, HalLink link = null) where T : IHalResource
 		{
 			link = link ?? resource.Links.FirstOrDefault(l => l.Rel == "self");
 			if (link == null) {
@@ -22,7 +22,13 @@ namespace Ecom.Hal.Persister
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
 			var result = 
 				resource.IsNew ? HttpClient.PostAsync(link.Href, content).Result : HttpClient.PutAsync(link.Href, content).Result;
-			return JsonConvert.DeserializeObject<T>(result.Content.ReadAsStringAsync().Result, new JsonConverter[] { new HalResourceConverter()});
+			var ret = new HalPersistResult<T> {Success = result.IsSuccessStatusCode, HttpStatusCode = (int) result.StatusCode};
+			if (result.IsSuccessStatusCode) {
+				var settings = new JsonSerializerSettings {Converters = new List<JsonConverter>() {new HalResourceConverter()}};
+				JsonConvert.PopulateObject(result.Content.ReadAsStringAsync().Result, resource, settings);
+				ret.Resource = resource;
+			}
+			return ret;
 		}
 
 		public bool CanPersist(Type type)

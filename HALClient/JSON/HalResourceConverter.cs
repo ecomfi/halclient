@@ -35,6 +35,11 @@ namespace Ecom.Hal.JSON
 					}
 				}
 			}
+			if (obj["_links"] != null && obj["_links"].HasValues && objectType.IsSubclassOf(typeof(HalResource))) {
+				((HalResource) ret).Links = JsonConvert.DeserializeObject<HalLinkCollection>(obj["_links"].ToString(),
+				                                                                             new JsonConverter[]
+				                                                                             	{new HalLinkCollectionConverter()});
+			}
 			if (objectType.IsSubclassOf(typeof(HalResource)))
 				((HalResource) ret).IsNew = false;
 			return ret;

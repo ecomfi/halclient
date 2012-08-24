@@ -8,7 +8,7 @@ namespace Ecom.Hal.Persister
 {
 	public interface IHalPersisterStrategy
 	{
-		T Persist<T>(T resource, HalLink link = null) where T : HalResource;
+		IHalPersistResult<T> Persist<T>(T resource, HalLink link = null) where T : IHalResource;
 		bool CanPersist(Type type);
 		HalClient HalClient { get; set; }
 		HttpClient HttpClient { get; set; }

@@ -36,17 +36,17 @@ namespace Ecom.Hal
 				          	});
 		}
 
-		public Task<T> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : HalResource
+		public Task<IHalPersistResult<T>> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : IHalResource
 		{
 			strategy = strategy ?? GetDefaultPersisterStrategy(resource);
 			if (strategy == null)
 				throw new HalPersisterException("No persister found for resource: " + resource);
-			return Task<T>
+			return Task<IHalPersistResult<T>>
 				.Factory
 				.StartNew(() => strategy.Persist(resource, link));
 		}
 
-		private IHalPersisterStrategy GetDefaultPersisterStrategy(HalResource resource)
+		private IHalPersisterStrategy GetDefaultPersisterStrategy(IHalResource resource)
 		{
 			return Strategies
 				.FirstOrDefault(str => str.CanPersist(resource.GetType()));
