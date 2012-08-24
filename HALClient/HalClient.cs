@@ -76,5 +76,15 @@ namespace Ecom.Hal
 		{
 			return Get<T>(link.Href);
 		}
+
+		public Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null)
+		{
+			strategy = strategy ?? GetDefaultPersisterStrategy(resource);
+			if (strategy == null)
+				throw new HalPersisterException("No persister found for resource: " + resource);
+			return Task<IHalDeleteResult>
+				.Factory
+				.StartNew(() => strategy.Delete(resource));
+		}
 	}
 }

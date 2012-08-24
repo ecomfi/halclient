@@ -39,5 +39,13 @@ namespace Ecom.Hal.Persister
 		public HalClient HalClient { get; set; }
 
 		public HttpClient HttpClient { get; set; }
+		public IHalDeleteResult Delete(IHalResource resource)
+		{
+			var link = resource.Links.FirstOrDefault(l => l.Rel == "self");
+			if (link == null)
+				throw new HalPersisterException("No link found for deleting: " + resource);
+			var result = HttpClient.DeleteAsync(link.Href).Result;
+			return new HalDeleteResult {Success = result.IsSuccessStatusCode};
+		}
 	}
 }

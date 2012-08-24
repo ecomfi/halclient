@@ -12,5 +12,6 @@ namespace Ecom.Hal.Persister
 		bool CanPersist(Type type);
 		HalClient HalClient { get; set; }
 		HttpClient HttpClient { get; set; }
+		IHalDeleteResult Delete(IHalResource resource);
 	}
 }
