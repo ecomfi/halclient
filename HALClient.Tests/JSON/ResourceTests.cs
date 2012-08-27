@@ -16,8 +16,7 @@ namespace HALClient.Tests.JSON
 		public void TestParseParsesLinks()
 		{
 			var str = @"{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}}}";
-			var client = new HalClient(new Uri("http://test"));
-			var model = client.Parse<Product>(str);
+			var model = Ecom.Hal.HalClient.Parse<Product>(str);
 			Assert.NotNull(model);
 			Assert.AreEqual("Foo bar", model.Name);
 			Assert.IsInstanceOf<HalLinkCollection>(model.Links);
@@ -31,8 +30,7 @@ namespace HALClient.Tests.JSON
 		{
 			var str =
 				@"{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}},""_embedded"":{""supplier"":{""name"":""Test supplier""}}}";
-			var client = new HalClient(new Uri("http://test"));
-			var model = client.Parse<Product>(str);
+			var model = Ecom.Hal.HalClient.Parse<Product>(str);
 			Assert.IsInstanceOf<Supplier>(model.Supplier);
 			Assert.AreEqual("Test supplier", model.Supplier.Name);
 		}
@@ -42,8 +40,7 @@ namespace HALClient.Tests.JSON
 		{
 			var str =
 				@"{""_embedded"":{""products"":[{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}},""_embedded"":{""supplier"":{""name"":""Test supplier""}}}]}}";
-			var client = new HalClient(new Uri("http://test"));
-			var model = client.Parse<Products>(str);
+			var model = Ecom.Hal.HalClient.Parse<Products>(str);
 			Assert.AreEqual(1, model.Items.Count);
 			var product = model.Items.First();
 			Assert.AreEqual("Foo bar", product.Name);

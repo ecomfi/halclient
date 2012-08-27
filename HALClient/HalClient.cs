@@ -10,6 +10,7 @@ using Ecom.Hal.JSON;
 using Ecom.Hal.Persister;
 using Newtonsoft.Json;
 using System.Linq;
+using Tavis.UriTemplates;
 
 namespace Ecom.Hal
 {
@@ -80,17 +81,19 @@ namespace Ecom.Hal
 				.StartNew(() =>
 				          	{
 				          		Uri uri;
-				          		if (link.IsTemplated) {
-				          			var template = new UriTemplate(link.Href);
-				          			var baseUri = Client.BaseAddress;
-				          			uri = template.BindByName(baseUri, parameters);
-				          		}
-				          		else {
-				          			uri = new Uri(link.Href, UriKind.Relative);
-				          		}
+				          		uri = link.IsTemplated ? ResolveTemplate(link, parameters) : new Uri(link.Href, UriKind.Relative);
 				          		var body = Client.GetStringAsync(uri).Result;
 				          		return Parse<T>(body);
 				          	});
+		}
+
+		internal Uri ResolveTemplate(HalLink link, NameValueCollection parameters)
+		{
+			var template = new UriTemplate(link.Href);
+			foreach (var key in parameters.AllKeys) {
+				template.SetParameter(key, parameters[key]);
+			}
+			return new Uri(template.Resolve(), UriKind.Relative);
 		}
 
 		public Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null)
