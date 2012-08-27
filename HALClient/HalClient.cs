@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,7 +13,16 @@ using System.Linq;
 
 namespace Ecom.Hal
 {
-	public class HalClient
+	public interface IHalClient
+	{
+		Task<IHalPersistResult<T>> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : class, IHalResource;
+		void RegisterPersisterStrategy(IHalPersisterStrategy strategy);
+		void SetCredentials(string username, string password);
+		Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class;
+		Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null);
+	}
+
+	public class HalClient : IHalClient
 	{
 		public HalClient(Uri endpoint)
 		{
@@ -20,23 +30,12 @@ namespace Ecom.Hal
 			Strategies = new List<IHalPersisterStrategy>();
 		}
 
-		public T Parse<T>(string content)
+		public static T Parse<T>(string content)
 		{
 			return JsonConvert.DeserializeObject<T>(content, new JsonConverter[] {new HalResourceConverter()});
 		}
 
-		public Task<T> Get<T>(string path)
-		{
-			return Task<T>
-				.Factory
-				.StartNew(() =>
-				          	{
-				          		var body = Client.GetStringAsync(new Uri(path, UriKind.Relative)).Result;
-				          		return Parse<T>(body);
-				          	});
-		}
-
-		public Task<IHalPersistResult<T>> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : IHalResource
+		public Task<IHalPersistResult<T>> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : class, IHalResource
 		{
 			strategy = strategy ?? GetDefaultPersisterStrategy(resource);
 			if (strategy == null)
@@ -72,9 +71,26 @@ namespace Ecom.Hal
 
 		internal HttpClient Client { get; set; }
 
-		public Task<T> Get<T>(HalLink link)
+		public Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class
 		{
-			return Get<T>(link.Href);
+			if (parameters == null)
+				parameters = new NameValueCollection();
+			return Task<T>
+				.Factory
+				.StartNew(() =>
+				          	{
+				          		Uri uri;
+				          		if (link.IsTemplated) {
+				          			var template = new UriTemplate(link.Href);
+				          			var baseUri = Client.BaseAddress;
+				          			uri = template.BindByName(baseUri, parameters);
+				          		}
+				          		else {
+				          			uri = new Uri(link.Href, UriKind.Relative);
+				          		}
+				          		var body = Client.GetStringAsync(uri).Result;
+				          		return Parse<T>(body);
+				          	});
 		}
 
 		public Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null)
