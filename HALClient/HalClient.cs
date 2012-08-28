@@ -21,17 +21,19 @@ namespace Ecom.Hal
 		void SetCredentials(string username, string password);
 		Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class;
 		Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null);
+		HttpClient HttpClient { get; }
+		T Parse<T>(string content);
 	}
 
 	public class HalClient : IHalClient
 	{
 		public HalClient(Uri endpoint)
 		{
-			Client = new HttpClient {BaseAddress = endpoint};
+			HttpClient = new HttpClient {BaseAddress = endpoint};
 			Strategies = new List<IHalPersisterStrategy>();
 		}
 
-		public static T Parse<T>(string content)
+		public T Parse<T>(string content)
 		{
 			return JsonConvert.DeserializeObject<T>(content, new JsonConverter[] {new HalResourceConverter()});
 		}
@@ -55,7 +57,7 @@ namespace Ecom.Hal
 		public void RegisterPersisterStrategy(IHalPersisterStrategy strategy)
 		{
 			strategy.HalClient = this;
-			strategy.HttpClient = Client;
+			strategy.HttpClient = HttpClient;
 			Strategies.Add(strategy);
 		}
 
@@ -63,14 +65,12 @@ namespace Ecom.Hal
 
 		public void SetCredentials(string username, string password)
 		{
-			Client
+			HttpClient
 				.DefaultRequestHeaders
 				.Authorization = new AuthenticationHeaderValue(
 					"Basic", 
 					Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", username, password))));
 		}
-
-		internal HttpClient Client { get; set; }
 
 		public Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class
 		{
@@ -82,7 +82,7 @@ namespace Ecom.Hal
 				          	{
 				          		Uri uri;
 				          		uri = link.IsTemplated ? ResolveTemplate(link, parameters) : new Uri(link.Href, UriKind.Relative);
-				          		var body = Client.GetStringAsync(uri).Result;
+				          		var body = HttpClient.GetStringAsync(uri).Result;
 				          		return Parse<T>(body);
 				          	});
 		}
@@ -105,5 +105,7 @@ namespace Ecom.Hal
 				.Factory
 				.StartNew(() => strategy.Delete(resource));
 		}
+
+		public HttpClient HttpClient { get; internal set; }
 	}
 }
