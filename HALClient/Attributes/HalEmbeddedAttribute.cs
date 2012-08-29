@@ -16,5 +16,7 @@ namespace Ecom.Hal.Attributes
 			Rel = rel;
 		}
 		public string Rel { get; set; }
+
+		public Type Type { get; set; }
 	}
 }

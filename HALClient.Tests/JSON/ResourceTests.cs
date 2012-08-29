@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Ecom.Hal;
+using Ecom.Hal.JSON;
 using HALClient.Tests.Support;
 using NUnit.Framework;
 using Newtonsoft.Json;
@@ -15,8 +16,10 @@ namespace HALClient.Tests.JSON
 		[Test]
 		public void TestParseParsesLinks()
 		{
+			var settings = new JsonSerializerSettings();
+			settings.Converters = new List<JsonConverter>() { new HalResourceConverter()};
 			var str = @"{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}}}";
-			var model = Ecom.Hal.HalClient.Parse<Product>(str);
+			var model = JsonConvert.DeserializeObject<Product>(str, settings);
 			Assert.NotNull(model);
 			Assert.AreEqual("Foo bar", model.Name);
 			Assert.IsInstanceOf<HalLinkCollection>(model.Links);
@@ -28,9 +31,11 @@ namespace HALClient.Tests.JSON
 		[Test]
 		public void TestParseParsesEmbedded()
 		{
+			var settings = new JsonSerializerSettings();
+			settings.Converters = new List<JsonConverter>() { new HalResourceConverter() };
 			var str =
 				@"{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}},""_embedded"":{""supplier"":{""name"":""Test supplier""}}}";
-			var model = Ecom.Hal.HalClient.Parse<Product>(str);
+			var model = JsonConvert.DeserializeObject<Product>(str, settings);
 			Assert.IsInstanceOf<Supplier>(model.Supplier);
 			Assert.AreEqual("Test supplier", model.Supplier.Name);
 		}
@@ -38,14 +43,28 @@ namespace HALClient.Tests.JSON
 		[Test]
 		public void TestParseParsesNestedEmbedded()
 		{
+			var settings = new JsonSerializerSettings();
+			settings.Converters = new List<JsonConverter>() { new HalResourceConverter() };
 			var str =
 				@"{""_embedded"":{""products"":[{""name"":""Foo bar"",""_links"":{""self"":{""href"":""/products/123""}},""_embedded"":{""supplier"":{""name"":""Test supplier""}}}]}}";
-			var model = Ecom.Hal.HalClient.Parse<Products>(str);
+			var model = JsonConvert.DeserializeObject<Products>(str, settings);
 			Assert.AreEqual(1, model.Items.Count);
 			var product = model.Items.First();
 			Assert.AreEqual("Foo bar", product.Name);
 			Assert.NotNull(product.Supplier);
 			Assert.AreEqual("Test supplier", product.Supplier.Name);
+		}
+
+		[Test]
+		public void TestSupportsNestedInterfaces()
+		{
+			var settings = new JsonSerializerSettings();
+			settings.Converters = new List<JsonConverter>() { new HalResourceConverter() };
+			var str = @"{""bar"":""bar1"",""_embedded"":{""baz"":{""quux"":""quux1""}}}";
+			var model = JsonConvert.DeserializeObject<Foo>(str, settings);
+			Assert.AreEqual("bar1", model.Bar);
+			Assert.NotNull(model.Baz);
+			Assert.AreEqual("quux1", model.Baz.Quux);
 		}
 	}
 }

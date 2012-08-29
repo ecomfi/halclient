@@ -28,8 +28,9 @@ namespace Ecom.Hal.JSON
 						var attribute = property.GetCustomAttributes(true).FirstOrDefault(attr => attr is HalEmbeddedAttribute &&
 																																											((HalEmbeddedAttribute) attr).Rel == rel);
 						if (attribute != null) {
+							var type = (attribute as HalEmbeddedAttribute).Type ?? property.PropertyType;
 							property.SetValue(ret,
-																JsonConvert.DeserializeObject(enumerator.Current.Value.ToString(), property.PropertyType,
+																JsonConvert.DeserializeObject(enumerator.Current.Value.ToString(), type,
 																															new JsonConverter[] {new HalResourceConverter()}), null);
 						}
 					}
