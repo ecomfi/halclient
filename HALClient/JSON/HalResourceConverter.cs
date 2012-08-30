@@ -11,6 +11,13 @@ namespace Ecom.Hal.JSON
 {
 	class HalResourceConverter : JsonConverter
 	{
+		public HalResourceConverter(Type type = null)
+		{
+			ObjectType = type;
+		}
+
+		protected Type ObjectType { get; set; }
+
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			throw new NotImplementedException();
@@ -19,7 +26,7 @@ namespace Ecom.Hal.JSON
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var obj = JToken.ReadFrom(reader);
-			var ret = JsonConvert.DeserializeObject(obj.ToString(), objectType, new JsonConverter[] { });
+			var ret = JsonConvert.DeserializeObject(obj.ToString(), ObjectType ?? objectType, new JsonConverter[] { });
 			if (obj["_embedded"] != null && obj["_embedded"].HasValues) {
 				var enumerator = ((JObject) obj["_embedded"]).GetEnumerator();
 				while (enumerator.MoveNext()) {
@@ -31,7 +38,7 @@ namespace Ecom.Hal.JSON
 							var type = (attribute as HalEmbeddedAttribute).Type ?? property.PropertyType;
 							property.SetValue(ret,
 																JsonConvert.DeserializeObject(enumerator.Current.Value.ToString(), type,
-																															new JsonConverter[] {new HalResourceConverter()}), null);
+																															new JsonConverter[] {new HalResourceConverter((attribute as HalEmbeddedAttribute).CollectionMemberType)}), null);
 						}
 					}
 				}

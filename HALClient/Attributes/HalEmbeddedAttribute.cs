@@ -18,5 +18,7 @@ namespace Ecom.Hal.Attributes
 		public string Rel { get; set; }
 
 		public Type Type { get; set; }
+
+		public Type CollectionMemberType { get; set; }
 	}
 }
