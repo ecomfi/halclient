@@ -9,5 +9,10 @@ namespace Ecom.Hal
 		{
 			return (from link in this where link.Rel == rel select link).FirstOrDefault();
 		}
+
+		public bool HasLink(string rel)
+		{
+			return this.Any(l => l.Rel == rel);
+		}
 	}
 }
