@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -18,15 +19,18 @@ namespace Ecom.Hal.Persister
 			if (link == null) {
 				throw new HalPersisterException("No link found for persisting: " + resource);
 			}
+			var href = new Uri(link.Href, UriKind.Relative);
+			if (link.IsTemplated) {
+				href = HalClient.ResolveTemplate(link, new NameValueCollection());
+			}
 			var json = JsonConvert.SerializeObject(resource);
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
 			var result = 
-				resource.IsNew ? HttpClient.PostAsync(link.Href, content).Result : HttpClient.PutAsync(link.Href, content).Result;
+				resource.IsNew ? HttpClient.PostAsync(href, content).Result : HttpClient.PutAsync(href, content).Result;
 			var ret = new HalPersistResult<T> {Success = result.IsSuccessStatusCode, HttpStatusCode = (int) result.StatusCode};
 			if (result.IsSuccessStatusCode) {
-				var settings = new JsonSerializerSettings {Converters = new List<JsonConverter>() {new HalResourceConverter()}};
-				JsonConvert.PopulateObject(result.Content.ReadAsStringAsync().Result, resource, settings);
-				ret.Resource = resource;
+				var settings = new JsonSerializerSettings {Converters = new List<JsonConverter>() {new HalResourceConverter(resource.GetType())}};
+				ret.Resource = JsonConvert.DeserializeObject<T>(result.Content.ReadAsStringAsync().Result, settings);
 			}
 			return ret;
 		}
