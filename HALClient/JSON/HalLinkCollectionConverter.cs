@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Ecom.Hal.JSON
 {
-	class HalLinkCollectionConverter : JsonConverter
+	public class HalLinkCollectionConverter : JsonConverter
 	{
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
