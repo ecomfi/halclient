@@ -82,7 +82,10 @@ namespace Ecom.Hal
 				          	{
 				          		Uri uri;
 				          		uri = link.IsTemplated ? ResolveTemplate(link, parameters) : new Uri(link.Href, UriKind.Relative);
-				          		var body = HttpClient.GetStringAsync(uri).Result;
+				          		var getResult = HttpClient.GetAsync(uri).Result;
+											if (!getResult.IsSuccessStatusCode)
+												return null;
+				          		var body = getResult.Content.ReadAsStringAsync().Result;
 				          		var ret = Parse<T>(body);
 											if (ret is IHalResource) {
 												((IHalResource) ret).IsNew = false;
