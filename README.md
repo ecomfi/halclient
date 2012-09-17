@@ -3,6 +3,9 @@ ecomfi/halclient
 
 HALClient is a standalone client consuming HAL powered hypermedia APIs
 
+At the moment there is support written for the JSON variant of HAL. 
+HALClient uses Newtonsoft.JSON to deserialize JSON resources into C# objects with awareness of Hypermedia.
+
 Usage
 -----
 
