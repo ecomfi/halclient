@@ -19,7 +19,8 @@ namespace Ecom.Hal
 		Task<IHalPersistResult<T>> Persist<T>(T resource, HalLink link = null, IHalPersisterStrategy strategy = null) where T : class, IHalResource;
 		void RegisterPersisterStrategy(IHalPersisterStrategy strategy);
 		void SetCredentials(string username, string password);
-		Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class;
+		Task<T> Get<T>(HalLink link, NameValueCollection parameters) where T : class;
+		Task<T> Get<T>(HalLink link, Dictionary<string, object> parameters = null) where T : class;
 		Task<IHalDeleteResult> Delete(IHalResource resource, IHalPersisterStrategy strategy = null);
 		HttpClient HttpClient { get; }
 		T Parse<T>(string content);
@@ -72,10 +73,19 @@ namespace Ecom.Hal
 					Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", username, password))));
 		}
 
-		public Task<T> Get<T>(HalLink link, NameValueCollection parameters = null) where T : class
+		public Task<T> Get<T>(HalLink link, NameValueCollection parameters) where T : class
+		{
+			var dict = new Dictionary<string, object>();
+			foreach (var key in parameters.AllKeys) {
+				dict[key] = parameters[key];
+			}
+			return Get<T>(link, dict);
+		}
+
+		public Task<T> Get<T>(HalLink link, Dictionary<string, object> parameters = null) where T : class
 		{
 			if (parameters == null)
-				parameters = new NameValueCollection();
+				parameters = new Dictionary<string, object>();
 			return Task<T>
 				.Factory
 				.StartNew(() =>
@@ -94,10 +104,10 @@ namespace Ecom.Hal
 				          	});
 		}
 
-		internal Uri ResolveTemplate(HalLink link, NameValueCollection parameters)
+		internal Uri ResolveTemplate(HalLink link, Dictionary<string, object> parameters)
 		{
 			var template = new UriTemplate(link.Href);
-			foreach (var key in parameters.AllKeys) {
+			foreach (var key in parameters.Keys) {
 				template.SetParameter(key, parameters[key]);
 			}
 			return new Uri(template.Resolve(), UriKind.Relative);

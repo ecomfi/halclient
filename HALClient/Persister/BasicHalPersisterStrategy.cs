@@ -21,7 +21,7 @@ namespace Ecom.Hal.Persister
 			}
 			var href = new Uri(link.Href, UriKind.Relative);
 			if (link.IsTemplated) {
-				href = HalClient.ResolveTemplate(link, new NameValueCollection());
+				href = HalClient.ResolveTemplate(link, new Dictionary<string, object>());
 			}
 			var json = JsonConvert.SerializeObject(resource);
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
