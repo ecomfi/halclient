@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -30,7 +31,8 @@ namespace Ecom.Hal
 	{
 		public HalClient(Uri endpoint)
 		{
-			HttpClient = new HttpClient {BaseAddress = endpoint};
+			HttpClient = new HttpClient(new HttpClientHandler() {AutomaticDecompression = DecompressionMethods.GZip}) {BaseAddress = endpoint};
+			HttpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 			Strategies = new List<IHalPersisterStrategy>();
 		}
 
